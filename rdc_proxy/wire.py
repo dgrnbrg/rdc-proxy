@@ -1,4 +1,8 @@
-"""TLV wire protocol decoder for the Kohler RDC."""
+"""TLV wire protocol decoder for the Kohler RDC.
+
+Pure / stateless: takes raw bytes, yields decoded records. Safe to import from
+any module without side effects.
+"""
 
 import struct
 
@@ -66,6 +70,12 @@ def decode_value(raw_bytes, vlen, transform):
 
 
 def parse_tlv_records(buf):
+    """Yield (param_id, decoded_name, decoded_value, units) from a TLV buffer.
+
+    Format (little-endian throughout):
+      Header 12B: [len:u32][ver=2:u16][record_count:u16][rsvd:u32]
+      Record:    [param_id:u16][type=0x00c0:u16][vlen:u32][value:vlen][pad=0:u16]
+    """
     i, N = 0, len(buf)
     while i + 12 <= N:
         lf = struct.unpack_from("<I", buf, i)[0]
